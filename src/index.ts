@@ -14,7 +14,8 @@ const main = async () => {
       password: "postgres",
       // logging: true,
       synchronize: true,
-      entities: [Campground]
+      entities: [Campground],
+      // migrations: ['./migrations/**/*.[tj]s']
     });
 
     if (conn.isConnected) {
@@ -25,8 +26,7 @@ const main = async () => {
     console.log("Error while connecting to db", err)
   }
 
-
-  // const c1 = Campground.insert({ name: "Abyss" })
+  // const c1 = Campground.insert({ name: "Kera" })
   // const c1 = await Campground.find()
   // console.log(c1)
 
