@@ -26,11 +26,7 @@ const main = async () => {
     console.log("Error while connecting to db", err)
   }
 
-  // const c1 = Campground.insert({ name: "Kera" })
-  // const c1 = await Campground.find()
-  // console.log(c1)
-
-  app.get("/", (req, res) => {
+  app.get("/", (_, res) => {
     res.send("HELLO WORLD");
   });
 
