@@ -2,10 +2,24 @@ import "reflect-metadata"
 import express from "express";
 import { createConnection } from "typeorm";
 import { Campground } from "./entities/Campground";
+import { ApolloServer } from "apollo-server-express"
+import { buildSchema } from "type-graphql";
+import { HelloResolver } from "./resolvers/hello";
 
 const main = async () => {
   const app = express();
 
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: [HelloResolver],
+      validate: false
+    })
+  })
+
+  await apolloServer.start()
+  apolloServer.applyMiddleware({ app })
+
+  // DATABASE
   try {
     const conn = await createConnection({
       type: "postgres",
@@ -26,9 +40,7 @@ const main = async () => {
     console.log("Error while connecting to db", err)
   }
 
-  app.get("/", (_, res) => {
-    res.send("HELLO WORLD");
-  });
+
 
   app.listen(3000, () => {
     console.log("Server listening on PORT 3000");
