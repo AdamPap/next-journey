@@ -5,6 +5,7 @@
   "main": "index.ts",
   "dependencies": {
     "apollo-server-express": "^3.4.0",
+    "argon2": "^0.28.2",
     "express": "^4.17.1",
     "graphql": "^15.6.1",
     "pg": "^8.7.1",

@@ -4,16 +4,16 @@ import { createConnection } from "typeorm";
 import { Campground } from "./entities/Campground";
 import { ApolloServer } from "apollo-server-express"
 import { buildSchema } from "type-graphql";
-import { HelloResolver } from "./resolvers/hello";
 import { CampgroundResolver } from "./resolvers/campground";
-import { Place } from "./entities/Place";
+import { User } from "./entities/User";
+import { UserResolver } from "./resolvers/user";
 
 const main = async () => {
   const app = express();
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, CampgroundResolver],
+      resolvers: [CampgroundResolver, UserResolver],
       validate: false
     }),
     // context: () => ({ req, res }) => ({ req, res })
@@ -32,7 +32,7 @@ const main = async () => {
       // logging: true,
       //NOTE: just for dev, in prod -> migrations
       synchronize: true,
-      entities: [Campground],
+      entities: [Campground, User],
       // migrations: ['./migrations/**/*.[tj]s']
     });
 
