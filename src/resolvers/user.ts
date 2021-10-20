@@ -54,16 +54,42 @@ class LoginInput {
 
 @Resolver()
 export class UserResolver {
-  @Mutation(() => User)
-  async register(@Arg("options") options: RegisterInput): Promise<User> {
+  @Mutation(() => UserResponse)
+  async register(
+    @Arg("options") options: RegisterInput
+  ): Promise<UserResponse> {
+    // TODO: add validation library for advanced checks
+    if (options.username.length < 6) {
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "Username length must be at least 6 characters",
+          },
+        ],
+      };
+    }
+
+    if (options.password.length < 8) {
+      return {
+        errors: [
+          {
+            field: "password",
+            message: "Password length must be at least 8 characters",
+          },
+        ],
+      };
+    }
+
     const hashedPassword = await argon2.hash(options.password);
-    const user = User.create({
+    const user = await User.create({
       username: options.username,
       name: options.name,
       email: options.email,
       password: hashedPassword,
     }).save();
-    return user;
+
+    return { user };
   }
 
   @Mutation(() => UserResponse)
