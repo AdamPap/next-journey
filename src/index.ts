@@ -5,15 +5,18 @@ import { Campground } from "./entities/Campground";
 import { ApolloServer } from "apollo-server-express"
 import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
+import { CampgroundResolver } from "./resolvers/campground";
+import { Place } from "./entities/Place";
 
 const main = async () => {
   const app = express();
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver],
+      resolvers: [HelloResolver, CampgroundResolver],
       validate: false
-    })
+    }),
+    // context: () => ({ req, res }) => ({ req, res })
   })
 
   await apolloServer.start()
@@ -27,10 +30,12 @@ const main = async () => {
       username: "postgres",
       password: "postgres",
       // logging: true,
+      //NOTE: just for dev, in prod -> migrations
       synchronize: true,
       entities: [Campground],
       // migrations: ['./migrations/**/*.[tj]s']
     });
+
 
     if (conn.isConnected) {
       console.log("DB connection success: ", conn.isConnected)
@@ -40,7 +45,9 @@ const main = async () => {
     console.log("Error while connecting to db", err)
   }
 
-
+  // const c1 = await Campground.insert({ name: "Kera", location: "Crete" })
+  // const p1 = await Place.find()
+  // console.log(p1)
 
   app.listen(3000, () => {
     console.log("Server listening on PORT 3000");
