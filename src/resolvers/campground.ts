@@ -9,7 +9,7 @@ export class CampgroundResolver {
     }
 
     @Query(() => Campground, { nullable: true })
-    async campground(@Arg("id") id: number): Promise<Campground | undefined> {
+    async campground(@Arg("id", () => Int) id: number): Promise<Campground | undefined> {
         return Campground.findOne(id)
     }
 
@@ -37,5 +37,17 @@ export class CampgroundResolver {
         await Campground.update(id, campground)
 
         return campground
+    }
+
+    @Mutation(() => Boolean)
+    async deleteCampground(
+        @Arg("id", () => Int) id: number
+    ): Promise<boolean> {
+        try {
+            await Campground.delete(id)
+            return true
+        } catch (err) {
+            return false
+        }
     }
 }
