@@ -8,6 +8,7 @@ import {
 } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
+import { QueryFailedError } from "typeorm";
 
 @ObjectType()
 class FieldError {
@@ -52,6 +53,11 @@ class LoginInput {
   password!: string;
 }
 
+const queryFailedGuard = (
+  err: any
+): err is QueryFailedError & { code: string } & { detail: string } =>
+  err instanceof QueryFailedError;
+
 @Resolver()
 export class UserResolver {
   @Mutation(() => UserResponse)
@@ -82,14 +88,39 @@ export class UserResolver {
     }
 
     const hashedPassword = await argon2.hash(options.password);
-    const user = await User.create({
-      username: options.username,
-      name: options.name,
-      email: options.email,
-      password: hashedPassword,
-    }).save();
 
-    return { user };
+    try {
+      const user = await User.create({
+        username: options.username,
+        name: options.name,
+        email: options.email,
+        password: hashedPassword,
+      }).save();
+
+      return { user };
+    } catch (err: unknown) {
+      if (queryFailedGuard(err)) {
+        if (err.code === "23505" || err.detail.includes("already exists")) {
+          return {
+            errors: [
+              {
+                field: "username",
+                message: `${options.username} is already in use`,
+              },
+            ],
+          };
+        }
+      }
+      console.log("message:", err);
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "Something went wrong",
+          },
+        ],
+      };
+    }
   }
 
   @Mutation(() => UserResponse)
