@@ -1,5 +1,6 @@
 import {
   Arg,
+  Ctx,
   Field,
   InputType,
   Mutation,
@@ -9,6 +10,7 @@ import {
 import { User } from "../entities/User";
 import argon2 from "argon2";
 import { QueryFailedError } from "typeorm";
+import { MyContext } from "../types";
 
 @ObjectType()
 class FieldError {
@@ -124,7 +126,10 @@ export class UserResolver {
   }
 
   @Mutation(() => UserResponse)
-  async login(@Arg("options") options: LoginInput): Promise<UserResponse> {
+  async login(
+    @Arg("options") options: LoginInput,
+    @Ctx() { req }: MyContext
+  ): Promise<UserResponse> {
     const user = await User.findOne({ username: options.username });
     if (!user) {
       return {
@@ -152,6 +157,8 @@ export class UserResolver {
         ],
       };
     }
+
+    req.session.userId = user.id;
 
     return { user };
   }

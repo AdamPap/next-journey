@@ -31,7 +31,7 @@ const main = async () => {
         maxAge: 1000 * 60 * 60 * 24 * 365, //1 year
         httpOnly: true,
         secure: __prod__,
-        sameSite: "lax",
+        sameSite: "none", //lax
       },
       secret: "justarandomsecret",
       resave: false,
@@ -48,7 +48,14 @@ const main = async () => {
   });
 
   await apolloServer.start();
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({
+    app,
+    cors: {
+      credentials: true,
+      origin: ["https://studio.apollographql.com"],
+    },
+    // path: "/graphql",
+  });
 
   // DATABASE
   try {
@@ -74,6 +81,10 @@ const main = async () => {
   // const c1 = await Campground.insert({ name: "Kera", location: "Crete" })
   // const p1 = await Place.find()
   // console.log(p1)
+
+  app.get("/", (_, res) => {
+    res.send("HELLO");
+  });
 
   app.listen(3000, () => {
     console.log("Server listening on PORT 3000");
