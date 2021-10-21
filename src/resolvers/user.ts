@@ -111,7 +111,7 @@ export class UserResolver {
           };
         }
       }
-      console.log("message:", err);
+      console.log(err);
       return {
         errors: [
           {
