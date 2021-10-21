@@ -5,6 +5,7 @@ import {
   InputType,
   Mutation,
   ObjectType,
+  Query,
   Resolver,
 } from "type-graphql";
 import { User } from "../entities/User";
@@ -62,9 +63,19 @@ const queryFailedGuard = (
 
 @Resolver()
 export class UserResolver {
+  @Query(() => User, { nullable: true })
+  async currentUser(@Ctx() { req }: MyContext) {
+    if (!req.session.userId) {
+      return null;
+    }
+    const user = await User.findOne(req.session.userId);
+    return user;
+  }
+
   @Mutation(() => UserResponse)
   async register(
-    @Arg("options") options: RegisterInput
+    @Arg("options") options: RegisterInput,
+    @Ctx() { req }: MyContext
   ): Promise<UserResponse> {
     // TODO: add validation library for advanced checks
     if (options.username.length < 6) {
@@ -98,6 +109,10 @@ export class UserResolver {
         email: options.email,
         password: hashedPassword,
       }).save();
+
+      // NOTE: store userId in session to keep them
+      // logged in
+      req.session.userId = user.id;
 
       return { user };
     } catch (err: unknown) {
