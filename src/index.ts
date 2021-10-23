@@ -52,7 +52,7 @@ const main = async () => {
     app,
     cors: {
       credentials: true,
-      origin: ["https://studio.apollographql.com"],
+      origin: ["https://studio.apollographql.com", "http://localhost:3000"],
     },
     // path: "/graphql",
   });
@@ -78,16 +78,12 @@ const main = async () => {
     console.log("Error while connecting to db", err);
   }
 
-  // const c1 = await Campground.insert({ name: "Kera", location: "Crete" })
-  // const p1 = await Place.find()
-  // console.log(p1)
-
   app.get("/", (_, res) => {
     res.send("HELLO");
   });
 
-  app.listen(3000, () => {
-    console.log("Server listening on PORT 3000");
+  app.listen(3001, () => {
+    console.log("Server listening on PORT 3001");
   });
 };
 
