@@ -10,9 +10,12 @@ import {
 } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
-import { QueryFailedError } from "typeorm";
+import { QueryFailedError, SimpleConsoleLogger } from "typeorm";
 import { MyContext } from "../types";
-import { COOKIE_NAME } from "../constants";
+import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "../constants";
+import { sendEmail } from "../utils/sendEmail";
+import { v4 } from "uuid";
+import { RedisClient } from "redis";
 
 @ObjectType()
 class FieldError {
@@ -64,6 +67,33 @@ const queryFailedGuard = (
 
 @Resolver()
 export class UserResolver {
+  @Mutation(() => Boolean)
+  async forgotPassword(
+    @Arg("email") email: string,
+    @Ctx() { redis }: MyContext
+  ) {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      // not informing user for security
+      return true;
+    }
+
+    const token = v4();
+    // token is good for 3 days
+    await redis.set(
+      FORGOT_PASSWORD_PREFIX + token,
+      user.id,
+      "ex",
+      1000 * 60 * 60 * 24 * 3
+    );
+
+    await sendEmail(
+      email,
+      "Password Change Request",
+      `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`
+    );
+  }
+
   @Query(() => User, { nullable: true })
   async currentUser(@Ctx() { req }: MyContext) {
     if (!req.session.userId) {

@@ -7,25 +7,24 @@ import { buildSchema } from "type-graphql";
 import { CampgroundResolver } from "./resolvers/campground";
 import { User } from "./entities/User";
 import { UserResolver } from "./resolvers/user";
-import redis from "redis";
+import Redis from "ioredis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { MyContext } from "./types";
-import { sendEmail } from "./utils/sendEmail";
 
 const main = async () => {
   const app = express();
 
   const RedisStore = connectRedis(session);
-  const RedisClient = redis.createClient();
+  const redis = new Redis();
 
   // NOTE: before apollo so that it can be used by it
   app.use(
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: RedisClient,
+        client: redis,
         disableTouch: true,
       }),
       cookie: {
@@ -45,7 +44,7 @@ const main = async () => {
       resolvers: [CampgroundResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): MyContext => ({ req, res }),
+    context: ({ req, res }): MyContext => ({ req, res, redis }),
   });
 
   await apolloServer.start();
