@@ -12,6 +12,7 @@ import { User } from "../entities/User";
 import argon2 from "argon2";
 import { QueryFailedError } from "typeorm";
 import { MyContext } from "../types";
+import { COOKIE_NAME } from "../constants";
 
 @ObjectType()
 class FieldError {
@@ -117,6 +118,7 @@ export class UserResolver {
       return { user };
     } catch (err: unknown) {
       if (queryFailedGuard(err)) {
+        // FIX: check for correct error code, when other properties are same
         if (err.code === "23505" || err.detail.includes("already exists")) {
           return {
             errors: [
@@ -176,5 +178,20 @@ export class UserResolver {
     req.session.userId = user.id;
 
     return { user };
+  }
+
+  @Mutation(() => Boolean)
+  async logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) =>
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          console.log(err);
+          resolve(false);
+          return;
+        }
+        resolve(true);
+      })
+    );
   }
 }
