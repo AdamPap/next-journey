@@ -12,6 +12,7 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { MyContext } from "./types";
+import { sendEmail } from "./utils/sendEmail";
 
 const main = async () => {
   const app = express();
