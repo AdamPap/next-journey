@@ -1,5 +1,23 @@
-import { Arg, Int, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from "type-graphql";
 import { Campground } from "../entities/Campground";
+import { isAuth } from "../middleware/isAuth";
+import { MyContext } from "../types";
+
+// @InputType()
+// class CampgroundInput {
+//   @Field()
+//   name!: string;
+//   @Field()
+//   location!: string;
+// }
 
 @Resolver()
 export class CampgroundResolver {
@@ -16,14 +34,21 @@ export class CampgroundResolver {
   }
 
   @Mutation(() => Campground)
+  @UseMiddleware(isAuth)
   async createCampground(
     @Arg("name") name: string,
-    @Arg("location") location: string
+    @Arg("location") location: string,
+    @Ctx() { req }: MyContext
   ): Promise<Campground> {
-    return Campground.create({ name, location }).save();
+    return Campground.create({
+      name,
+      location,
+      creatorId: req.session.userId,
+    }).save();
   }
 
   @Mutation(() => Campground, { nullable: true })
+  @UseMiddleware(isAuth)
   async updateCampground(
     @Arg("id", () => Int) id: number,
     @Arg("name") name: string,
@@ -33,14 +58,17 @@ export class CampgroundResolver {
     if (!campground) {
       return undefined;
     }
+    // TODO: check if name and location are defined
     campground.name = name;
     campground.location = location;
     await Campground.update(id, campground);
+    // OR await Campground.update({id}, {name}, {location})
 
     return campground;
   }
 
   @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
   async deleteCampground(@Arg("id", () => Int) id: number): Promise<boolean> {
     try {
       await Campground.delete(id);

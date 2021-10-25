@@ -65,7 +65,7 @@ const main = async () => {
       username: "postgres",
       password: "postgres",
       // logging: true,
-      //NOTE: just for dev, in prod -> migrations
+      //NOTE: sync just for dev, in prod -> migrations
       synchronize: true,
       entities: [Campground, User],
       // migrations: ['./migrations/**/*.[tj]s']

@@ -15,7 +15,6 @@ import { MyContext } from "../types";
 import { COOKIE_NAME, FORGOT_PASSWORD_PREFIX } from "../constants";
 import { sendEmail } from "../utils/sendEmail";
 import { v4 } from "uuid";
-import { RedisClient } from "redis";
 
 @ObjectType()
 class FieldError {
@@ -114,6 +113,7 @@ export class UserResolver {
 
     user.password = await argon2.hash(newPassword);
     await user.save();
+    // OR User.update({id: parseInt(userId)}, {password: await argon2.hash(newPassword)})
 
     redis.del(key);
 
@@ -129,6 +129,7 @@ export class UserResolver {
     @Ctx() { redis }: MyContext
   ) {
     const user = await User.findOne({ email: email });
+    // OR const user = await User.findOne({where: {  email }});
     if (!user) {
       // not informing user for security
       return true;
