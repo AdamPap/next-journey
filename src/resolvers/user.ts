@@ -67,6 +67,59 @@ const queryFailedGuard = (
 
 @Resolver()
 export class UserResolver {
+  @Mutation(() => UserResponse)
+  async changePassword(
+    @Arg("token") token: string,
+    @Arg("newPassword") newPassword: string,
+    @Ctx() { req, redis }: MyContext
+  ): // NOTE: makes sure we are typing correctly
+  Promise<UserResponse> {
+    if (newPassword.length < 2) {
+      return {
+        errors: [
+          {
+            field: "newPassword",
+            message: "Password length must be at least 8 characters",
+          },
+        ],
+      };
+    }
+
+    const userId = await redis.get(FORGOT_PASSWORD_PREFIX + token);
+
+    if (!userId) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "Token has expired",
+          },
+        ],
+      };
+    }
+
+    const user = await User.findOne(parseInt(userId));
+
+    if (!user) {
+      return {
+        errors: [
+          {
+            field: "token",
+            message: "User no longer exists",
+          },
+        ],
+      };
+    }
+
+    user.password = await argon2.hash(newPassword);
+    await user.save();
+
+    // login user after password change
+    req.session.userId = user.id;
+
+    return { user };
+  }
+
   @Mutation(() => Boolean)
   async forgotPassword(
     @Arg("email") email: string,
@@ -120,7 +173,7 @@ export class UserResolver {
       };
     }
 
-    if (options.password.length < 8) {
+    if (options.password.length < 2) {
       return {
         errors: [
           {
