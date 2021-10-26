@@ -12,6 +12,7 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { MyContext } from "./types";
+import path from "path";
 
 const main = async () => {
   const app = express();
@@ -64,15 +65,16 @@ const main = async () => {
       database: "trip-in-crete",
       username: "postgres",
       password: "postgres",
-      // logging: true,
+      logging: true,
       //NOTE: sync just for dev, in prod -> migrations
       synchronize: true,
       entities: [Campground, User],
-      // migrations: ['./migrations/**/*.[tj]s']
+      migrations: [path.join(__dirname, "./migrations/*")],
     });
 
     if (conn.isConnected) {
       console.log("DB connection success: ", conn.isConnected);
+      conn.runMigrations();
     }
   } catch (err) {
     console.log("Error while connecting to db", err);

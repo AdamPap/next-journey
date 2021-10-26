@@ -7,6 +7,7 @@ import {
   Resolver,
   UseMiddleware,
 } from "type-graphql";
+import { getConnection } from "typeorm";
 import { Campground } from "../entities/Campground";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
@@ -22,8 +23,28 @@ import { MyContext } from "../types";
 @Resolver()
 export class CampgroundResolver {
   @Query(() => [Campground])
-  async campgrounds() {
-    return Campground.find();
+  async campgrounds(
+    @Arg("limit", () => Int) limit: number,
+    // NOTE: have to explicitly set the type with ()=>String
+    // when it can be nullable
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+  ): Promise<Campground[]> {
+    const realLimit = Math.min(20, limit);
+    const queryBuilder = getConnection()
+      .getRepository(Campground)
+      .createQueryBuilder("c")
+      .orderBy("c.createdAt", "DESC")
+      .take(realLimit);
+
+    // NOTE: if there is a latest camp (cursor)
+    // get the next oldest posts
+    if (cursor) {
+      queryBuilder.where("c.createdAt < :cursor", {
+        cursor: new Date(cursor),
+      });
+    }
+
+    return queryBuilder.getMany();
   }
 
   @Query(() => Campground, { nullable: true })
