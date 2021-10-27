@@ -1,8 +1,10 @@
 import {
   Arg,
   Ctx,
+  Field,
   Int,
   Mutation,
+  ObjectType,
   Query,
   Resolver,
   UseMiddleware,
@@ -20,21 +22,32 @@ import { MyContext } from "../types";
 //   location!: string;
 // }
 
+@ObjectType()
+class PaginatedCammpgrounds {
+  @Field(() => [Campground])
+  campgrounds!: Campground[];
+  @Field()
+  hasMore!: boolean;
+}
+
 @Resolver()
 export class CampgroundResolver {
-  @Query(() => [Campground])
+  @Query(() => PaginatedCammpgrounds)
   async campgrounds(
     @Arg("limit", () => Int) limit: number,
     // NOTE: have to explicitly set the type with ()=>String
     // when it can be nullable
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
-  ): Promise<Campground[]> {
+  ): Promise<PaginatedCammpgrounds> {
     const realLimit = Math.min(20, limit);
+    // NOTE: +1 to fetch +1 and check if there is more
+    const realLimitPlusOne = realLimit + 1;
+
     const queryBuilder = getConnection()
       .getRepository(Campground)
       .createQueryBuilder("c")
       .orderBy("c.createdAt", "DESC")
-      .take(realLimit);
+      .take(realLimitPlusOne);
 
     // NOTE: if there is a latest camp (cursor)
     // get the next oldest posts
@@ -44,7 +57,12 @@ export class CampgroundResolver {
       });
     }
 
-    return queryBuilder.getMany();
+    const campgrounds = await queryBuilder.getMany();
+
+    return {
+      campgrounds: campgrounds.slice(0, realLimit),
+      hasMore: campgrounds.length === realLimitPlusOne,
+    };
   }
 
   @Query(() => Campground, { nullable: true })
