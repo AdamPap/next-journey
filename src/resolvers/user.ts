@@ -2,11 +2,13 @@ import {
   Arg,
   Ctx,
   Field,
+  FieldResolver,
   InputType,
   Mutation,
   ObjectType,
   Query,
   Resolver,
+  Root,
 } from "type-graphql";
 import { User } from "../entities/User";
 import argon2 from "argon2";
@@ -64,8 +66,18 @@ const queryFailedGuard = (
 ): err is QueryFailedError & { code: string } & { detail: string } =>
   err instanceof QueryFailedError;
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+  @FieldResolver(() => String)
+  email(@Root() user: User, @Ctx() { req }: MyContext) {
+    // if the current user is requesting we can show them their email
+    if (req.session.userId === user.id) {
+      return user.email;
+    }
+    // otherwise we show empty
+    return "";
+  }
+
   @Mutation(() => UserResponse)
   async changePassword(
     @Arg("token") token: string,
