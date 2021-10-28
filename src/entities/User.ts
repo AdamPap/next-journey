@@ -9,6 +9,7 @@ import {
   OneToMany,
 } from "typeorm";
 import { Campground } from "./Campground";
+import { Upvote } from "./Upvote";
 
 @ObjectType()
 @Entity()
@@ -34,6 +35,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Campground, (campground) => campground.creator)
   campgrounds?: Campground[];
+
+  @OneToMany(() => Upvote, (upvote) => upvote.user)
+  upvotes?: Upvote[];
 
   @Field(() => Date)
   @CreateDateColumn({

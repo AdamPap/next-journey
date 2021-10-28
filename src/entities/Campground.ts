@@ -7,7 +7,9 @@ import {
   BaseEntity,
   PrimaryGeneratedColumn,
   ManyToOne,
+  OneToMany,
 } from "typeorm";
+import { Upvote } from "./Upvote";
 import { User } from "./User";
 
 @ObjectType()
@@ -38,6 +40,9 @@ export class Campground extends BaseEntity {
   @ManyToOne(() => User, (user) => user.campgrounds)
   //NOTE: User type is ObjectType so it exposes it's fields in GraphQL
   creator!: User;
+
+  @OneToMany(() => Upvote, (upvote) => upvote.campground)
+  upvotes?: Upvote[];
 
   @Field(() => Date)
   @CreateDateColumn({
