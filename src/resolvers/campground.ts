@@ -46,6 +46,12 @@ export class CampgroundResolver {
     const queryBuilder = getConnection()
       .getRepository(Campground)
       .createQueryBuilder("c")
+      .innerJoinAndSelect(
+        "c.creator",
+        // this is an alias
+        "user",
+        'user.id = c."creatorId"'
+      )
       .orderBy("c.createdAt", "DESC")
       .take(realLimitPlusOne);
 

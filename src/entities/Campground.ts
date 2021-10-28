@@ -33,8 +33,10 @@ export class Campground extends BaseEntity {
   @Column()
   creatorId!: number;
 
-  // this is setting up a FK to the users table
+  @Field()
+  //NOTE: this is setting up a FK to the users table
   @ManyToOne(() => User, (user) => user.campgrounds)
+  //NOTE: User type is ObjectType so it exposes it's fields in GraphQL
   creator!: User;
 
   @Field(() => Date)
