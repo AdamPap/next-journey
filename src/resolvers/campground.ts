@@ -23,7 +23,7 @@ import { MyContext } from "../types";
 // }
 
 @ObjectType()
-class PaginatedCammpgrounds {
+class PaginatedCampgrounds {
   @Field(() => [Campground])
   campgrounds!: Campground[];
   @Field()
@@ -32,13 +32,13 @@ class PaginatedCammpgrounds {
 
 @Resolver()
 export class CampgroundResolver {
-  @Query(() => PaginatedCammpgrounds)
+  @Query(() => PaginatedCampgrounds)
   async campgrounds(
     @Arg("limit", () => Int) limit: number,
     // NOTE: have to explicitly set the type with ()=>String
     // when it can be nullable
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
-  ): Promise<PaginatedCammpgrounds> {
+  ): Promise<PaginatedCampgrounds> {
     const realLimit = Math.min(20, limit);
     // NOTE: +1 to fetch +1 and check if there is more
     const realLimitPlusOne = realLimit + 1;
