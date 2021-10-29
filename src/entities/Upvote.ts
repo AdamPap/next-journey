@@ -14,7 +14,7 @@ export class Upvote extends BaseEntity {
   @PrimaryColumn()
   userId!: number;
 
-  @Field()
+  @Field(() => User)
   @ManyToOne(() => User, (user) => user.upvotes)
   user!: User;
 
@@ -22,7 +22,7 @@ export class Upvote extends BaseEntity {
   @PrimaryColumn()
   campgroundId!: number;
 
-  @Field()
+  @Field(() => Campground)
   @ManyToOne(() => Campground, (campground) => campground.upvotes)
   campground!: Campground;
 }

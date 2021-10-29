@@ -13,6 +13,7 @@ import connectRedis from "connect-redis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { MyContext } from "./types";
 import path from "path";
+import { Upvote } from "./entities/Upvote";
 
 const main = async () => {
   const app = express();
@@ -68,7 +69,7 @@ const main = async () => {
       logging: true,
       //NOTE: sync just for dev, in prod -> migrations
       synchronize: true,
-      entities: [Campground, User],
+      entities: [Campground, User, Upvote],
       migrations: [path.join(__dirname, "./migrations/*")],
     });
 

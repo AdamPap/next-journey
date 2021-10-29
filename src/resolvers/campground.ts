@@ -1,5 +1,6 @@
 import {
   Arg,
+  Args,
   Ctx,
   Field,
   FieldResolver,
@@ -12,6 +13,7 @@ import {
 } from "type-graphql";
 import { getConnection } from "typeorm";
 import { Campground } from "../entities/Campground";
+import { Upvote } from "../entities/Upvote";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
 
@@ -33,6 +35,42 @@ class PaginatedCampgrounds {
 
 @Resolver()
 export class CampgroundResolver {
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async vote(
+    @Arg("campgroundId", () => Int) campgroundId: number,
+    @Arg("value", () => Int) value: number,
+    @Ctx() { req }: MyContext
+  ) {
+    const userId = req.session.userId;
+
+    const isUpvote = value !== -1;
+    const val = isUpvote ? 1 : -1;
+
+    // Upvote.insert({
+    //   userId,
+    //   campgroundId,
+    //   value: val,
+    // });
+
+    await getConnection().query(
+      `
+      BEGIN;
+
+      insert into upvote ("userId", "campgroundId", value)
+      values (${userId}, ${campgroundId}, ${val});
+
+      update campground 
+      set points = points + ${val}
+      where id = ${campgroundId};
+
+      COMMIT;
+      `
+    );
+
+    return true;
+  }
+
   @Query(() => PaginatedCampgrounds)
   async campgrounds(
     @Arg("limit", () => Int) limit: number,
