@@ -107,33 +107,85 @@ export class CampgroundResolver {
     @Arg("limit", () => Int) limit: number,
     // NOTE: have to explicitly set the type with ()=>String
     // when it can be nullable
-    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
+    @Ctx() { req }: MyContext
   ): Promise<PaginatedCampgrounds> {
     const realLimit = Math.min(20, limit);
     // NOTE: +1 to fetch +1 and check if there is more
     const realLimitPlusOne = realLimit + 1;
 
-    const queryBuilder = getConnection()
-      .getRepository(Campground)
-      .createQueryBuilder("c")
-      .innerJoinAndSelect(
-        "c.creator",
-        // this is an alias
-        "user",
-        'user.id = c."creatorId"'
-      )
-      .orderBy("c.createdAt", "DESC")
-      .take(realLimitPlusOne);
+    const replacements: any[] = [realLimitPlusOne];
 
-    // NOTE: if there is a latest camp (cursor)
-    // get the next oldest posts
-    if (cursor) {
-      queryBuilder.where("c.createdAt < :cursor", {
-        cursor: new Date(cursor),
-      });
+    if (req.session.userId) {
+      replacements.push(req.session.userId);
     }
 
-    const campgrounds = await queryBuilder.getMany();
+    let cursorIndex = 3;
+    if (cursor) {
+      console.log("CURSOR: ", cursor);
+      replacements.push(new Date(cursor));
+      cursorIndex = replacements.length;
+    }
+
+    const campgrounds = await getConnection().query(
+      `
+    select c.*,
+    json_build_object(
+      'id', u.id,
+      'username', u.username,
+      'email', u.email,
+      'name', u.name,
+      'createdAt', u."createdAt",
+      'updatedAt', u."updatedAt"
+      ) creator,
+    ${
+      req.session.userId
+        ? '(select value from upvote where "userId" = $2 and "campgroundId" = c.id) "voteStatus"'
+        : 'null as "voteStatus"'
+    }
+    from campground c
+    inner join public.user u on u.id = c."creatorId"
+    ${cursor ? `where c."createdAt" < $${cursorIndex}` : ""}
+    order by c."createdAt" DESC
+    limit $1
+    `,
+      replacements
+    );
+
+    console.log(campgrounds);
+    console.log(
+      " =======> REPLACEMENTS: ",
+      replacements[0],
+      replacements[1],
+      replacements[2]
+    );
+    // const queryBuilder = getConnection()
+    //   .getRepository(Campground)
+    //   .createQueryBuilder("c")
+    //   .innerJoinAndSelect(
+    //     "c.creator",
+    //     // this is an alias
+    //     "user",
+    //     'user.id = c."creatorId"'
+    //   )
+    //   .orderBy("c.createdAt", "DESC")
+    //   .take(realLimitPlusOne);
+
+    // // NOTE: if there is a latest camp (cursor)
+    // // get the next oldest posts
+    // if (cursor) {
+    //   queryBuilder.where("c.createdAt < :cursor", {
+    //     cursor: new Date(cursor),
+    //   });
+    // }
+
+    // queryBuilder
+    //   .addSelect('c."voteStatus"')
+    //   .from(Upvote, "u")
+    //   .where("userId = :id", { id: req.session.userId })
+    //   .andWhere("campgroundId = c.id");
+
+    // const campgrounds = await queryBuilder.getMany();
 
     return {
       campgrounds: campgrounds.slice(0, realLimit),
