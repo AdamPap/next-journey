@@ -197,7 +197,7 @@ export class CampgroundResolver {
   async campground(
     @Arg("id", () => Int) id: number
   ): Promise<Campground | undefined> {
-    return Campground.findOne(id);
+    return Campground.findOne(id, { relations: ["creator"] });
   }
 
   @Mutation(() => Campground)
