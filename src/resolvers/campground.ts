@@ -44,29 +44,60 @@ export class CampgroundResolver {
   ) {
     const userId = req.session.userId;
 
+    // make sure votes has value 1 or -1
     const isUpvote = value !== -1;
     const val = isUpvote ? 1 : -1;
 
-    // Upvote.insert({
-    //   userId,
-    //   campgroundId,
-    //   value: val,
-    // });
+    const upvote = await Upvote.findOne({
+      campgroundId,
+      userId,
+    });
 
-    await getConnection().query(
-      `
-      BEGIN;
+    // user has already votes for this camp
+    // or is voting the same
+    if (upvote && upvote.value !== val) {
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `
+          update upvote 
+          set value = $1
+          where "campgroundId" = $2 and "userId" = $3
+        `,
+          [val, campgroundId, userId]
+        );
 
-      insert into upvote ("userId", "campgroundId", value)
-      values (${userId}, ${campgroundId}, ${val});
+        await tm.query(
+          `
+          update campground 
+          set points = points + $1
+          where id = $2;
+        `,
+          // 2*val because changing vote is dif by 2
+          [2 * val, campgroundId]
+        );
+      });
+    } else if (!upvote) {
+      // has not voted yet
+      // typeorm handles the transaction
+      await getConnection().transaction(async (tm) => {
+        await tm.query(
+          `
+          insert into upvote ("userId", "campgroundId", value)
+          values ($1, $2, $3);
+        `,
+          [userId, campgroundId, val]
+        );
 
-      update campground 
-      set points = points + ${val}
-      where id = ${campgroundId};
-
-      COMMIT;
-      `
-    );
+        await tm.query(
+          `
+          update campground 
+          set points = points + $1
+          where id = $2;
+        `,
+          [val, campgroundId]
+        );
+      });
+    }
 
     return true;
   }
