@@ -219,19 +219,21 @@ export class CampgroundResolver {
   async updateCampground(
     @Arg("id", () => Int) id: number,
     @Arg("name") name: string,
-    @Arg("location") location: string
+    @Arg("location") location: string,
+    @Ctx() { req }: MyContext
   ): Promise<Campground | undefined> {
-    const campground = await Campground.findOne(id);
-    if (!campground) {
-      return undefined;
-    }
-    // TODO: check if name and location are defined
-    campground.name = name;
-    campground.location = location;
-    await Campground.update(id, campground);
-    // OR await Campground.update({id}, {name}, {location})
+    const camp = await getConnection()
+      .createQueryBuilder()
+      .update(Campground)
+      .set({ name, location })
+      .where("id = :id and creatorId = :creatorId", {
+        id,
+        creatorId: req.session.userId,
+      })
+      .returning("*")
+      .execute();
 
-    return campground;
+    return camp.raw[0];
   }
 
   @Mutation(() => Boolean)
