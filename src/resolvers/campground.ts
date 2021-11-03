@@ -152,13 +152,6 @@ export class CampgroundResolver {
       replacements
     );
 
-    console.log(campgrounds);
-    console.log(
-      " =======> REPLACEMENTS: ",
-      replacements[0],
-      replacements[1],
-      replacements[2]
-    );
     // const queryBuilder = getConnection()
     //   .getRepository(Campground)
     //   .createQueryBuilder("c")
@@ -226,7 +219,7 @@ export class CampgroundResolver {
       .createQueryBuilder()
       .update(Campground)
       .set({ name, location })
-      .where("id = :id and creatorId = :creatorId", {
+      .where('id = :id and "creatorId" = :creatorId', {
         id,
         creatorId: req.session.userId,
       })
