@@ -240,12 +240,21 @@ export class CampgroundResolver {
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: MyContext
   ): Promise<boolean> {
-    try {
-      await Campground.delete({ id, creatorId: req.session.userId });
-      return true;
-    } catch (err) {
-      console.log("Error while delete camp: ", err);
+    // NOTE: not cascade way
+    /* const campground = await Campground.findOne(id);
+    if (!campground) {
       return false;
     }
+
+    if (campground?.creatorId !== req.session.userId) {
+      throw new Error("Not Authorized");
+    }
+
+    await Upvote.delete({ campgroundId: id });
+    await Campground.delete({ id });
+    */
+
+    await Campground.delete({ id, creatorId: req.session.userId });
+    return true;
   }
 }

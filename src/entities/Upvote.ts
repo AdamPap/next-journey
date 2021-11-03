@@ -23,6 +23,8 @@ export class Upvote extends BaseEntity {
   campgroundId!: number;
 
   @Field(() => Campground)
-  @ManyToOne(() => Campground, (campground) => campground.upvotes)
+  @ManyToOne(() => Campground, (campground) => campground.upvotes, {
+    onDelete: "CASCADE",
+  })
   campground!: Campground;
 }
