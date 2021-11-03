@@ -236,11 +236,15 @@ export class CampgroundResolver {
 
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
-  async deleteCampground(@Arg("id", () => Int) id: number): Promise<boolean> {
+  async deleteCampground(
+    @Arg("id", () => Int) id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<boolean> {
     try {
-      await Campground.delete(id);
+      await Campground.delete({ id, creatorId: req.session.userId });
       return true;
     } catch (err) {
+      console.log("Error while delete camp: ", err);
       return false;
     }
   }
