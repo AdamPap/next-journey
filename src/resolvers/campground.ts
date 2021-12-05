@@ -215,7 +215,7 @@ export class CampgroundResolver {
     @Arg("location") location: string,
     @Ctx() { req }: MyContext
   ): Promise<Campground | undefined> {
-    const camp = await getConnection()
+    const result = await getConnection()
       .createQueryBuilder()
       .update(Campground)
       .set({ name, location })
@@ -226,7 +226,7 @@ export class CampgroundResolver {
       .returning("*")
       .execute();
 
-    return camp.raw[0];
+    return result.raw[0];
   }
 
   @Mutation(() => Boolean)

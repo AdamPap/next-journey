@@ -29,6 +29,7 @@
     "@types/uuid": "^8.3.1"
   },
   "scripts": {
+    "build": "tsc",
     "watch": "tsc -w",
     "dev": "nodemon --delay 500ms dist/index.js"
   },
