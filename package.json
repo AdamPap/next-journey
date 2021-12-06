@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.ts",
   "dependencies": {
+    "@types/dotenv-safe": "^8.1.2",
     "apollo-server-express": "^3.4.0",
     "argon2": "^0.28.2",
     "connect-redis": "^6.0.0",
+    "dotenv-safe": "^8.2.0",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
     "graphql": "^15.6.1",
@@ -31,6 +33,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "gen-env": "npx gen-env-types .env -o src/env.d.ts -e .",
     "watch": "tsc -w",
     "dev": "nodemon --delay 500ms dist/index.js"
   },

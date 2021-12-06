@@ -159,6 +159,7 @@ export class UserResolver {
     await sendEmail(
       email,
       "Password Change Request",
+      // TODO: switch domain
       `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`
     );
   }

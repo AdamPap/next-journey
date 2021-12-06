@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import "dotenv-safe/config";
 import express from "express";
 import { createConnection } from "typeorm";
 import { Campground } from "./entities/Campground";
@@ -19,8 +20,10 @@ const main = async () => {
   const app = express();
 
   const RedisStore = connectRedis(session);
-  const redis = new Redis();
+  const redis = new Redis(process.env.REDIS_URL);
 
+  // NGINX proxy
+  app.set("proxy", 1);
   // NOTE: before apollo so that it can be used by it
   app.use(
     session({
@@ -34,8 +37,9 @@ const main = async () => {
         httpOnly: true,
         secure: __prod__,
         sameSite: "none", //lax
+        // domain: __prod__ ? "mydomaim.com" : undefined,
       },
-      secret: "justarandomsecret",
+      secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
     })
@@ -54,7 +58,7 @@ const main = async () => {
     app,
     cors: {
       credentials: true,
-      origin: ["https://studio.apollographql.com", "http://localhost:3000"],
+      origin: [process.env.CORS_GRAPHQL, process.env.CORS_ORIGIN],
     },
     // path: "/graphql",
   });
@@ -63,12 +67,10 @@ const main = async () => {
   try {
     const conn = await createConnection({
       type: "postgres",
-      database: "trip-in-crete",
-      username: "postgres",
-      password: "postgres",
-      logging: true,
+      url: process.env.DATABASE_URL,
+      // logging: true,
       //NOTE: sync just for dev, in prod -> migrations
-      synchronize: true,
+      synchronize: !__prod__,
       entities: [Campground, User, Upvote],
       migrations: [path.join(__dirname, "./migrations/*")],
     });
@@ -85,8 +87,8 @@ const main = async () => {
     res.send("HELLO");
   });
 
-  app.listen(3001, () => {
-    console.log("Server listening on PORT 3001");
+  app.listen(process.env.PORT, () => {
+    console.log(`Server listening on PORT ${process.env.PORT}`);
   });
 };
 
