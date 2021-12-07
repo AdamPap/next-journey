@@ -37,7 +37,7 @@ const main = async () => {
         httpOnly: true,
         secure: __prod__,
         sameSite: "none", //lax
-        // domain: __prod__ ? "mydomaim.com" : undefined,
+        domain: __prod__ ? ".next-journey.xyz" : undefined,
       },
       secret: process.env.SESSION_SECRET,
       resave: false,
@@ -58,7 +58,8 @@ const main = async () => {
     app,
     cors: {
       credentials: true,
-      origin: [process.env.CORS_GRAPHQL, process.env.CORS_ORIGIN],
+      // origin: [process.env.CORS_GRAPHQL, process.env.CORS_ORIGIN],
+      origin: [process.env.CORS_ORIGIN],
     },
     // path: "/graphql",
   });
