@@ -16,6 +16,7 @@ import { Campground } from "../entities/Campground";
 import { Upvote } from "../entities/Upvote";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
+import cloudinary from "cloudinary";
 
 // @InputType()
 // class CampgroundInput {
@@ -198,13 +199,34 @@ export class CampgroundResolver {
   async createCampground(
     @Arg("name") name: string,
     @Arg("location") location: string,
+    @Arg("image") image: string,
     @Ctx() { req }: MyContext
   ): Promise<Campground> {
-    return Campground.create({
-      name,
-      location,
-      creatorId: req.session.userId,
-    }).save();
+    cloudinary.v2.config({
+      cloud_name: process.env.CLOUDINARY_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    try {
+      const result = await cloudinary.v2.uploader.upload(image, {
+        allowed_formats: ["jpg", "png"],
+        public_id: "",
+        folder: "next-journey",
+      });
+
+      const camp = Campground.create({
+        name,
+        location,
+        image: result.public_id,
+        creatorId: req.session.userId,
+      }).save();
+
+      return camp;
+    } catch (err) {
+      console.log(err);
+      throw new Error("Image upload failed");
+    }
   }
 
   @Mutation(() => Campground, { nullable: true })

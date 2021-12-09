@@ -27,6 +27,10 @@ export class Campground extends BaseEntity {
   @Column()
   location!: string;
 
+  @Field(() => String)
+  @Column()
+  image!: string;
+
   @Field()
   @Column({ type: "int", default: 0 })
   points!: number;

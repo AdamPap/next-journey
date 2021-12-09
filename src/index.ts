@@ -59,7 +59,7 @@ const main = async () => {
     cors: {
       credentials: true,
       // origin: [process.env.CORS_GRAPHQL, process.env.CORS_ORIGIN],
-      origin: [process.env.CORS_ORIGIN],
+      origin: [process.env.CORS_ORIGIN, "https://studio.apollographql.com"],
     },
     // path: "/graphql",
   });
@@ -78,7 +78,7 @@ const main = async () => {
 
     if (conn.isConnected) {
       console.log("DB connection success: ", conn.isConnected);
-      conn.runMigrations();
+      // conn.runMigrations();
     }
   } catch (err) {
     console.log("Error while connecting to db", err);

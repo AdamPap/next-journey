@@ -5,6 +5,7 @@
   "username": "postgres",
   "password": "postgres",
   "database": "next-journey",
+  "migrationsRun": "false",
   "entities": ["dist/entities/*.js"],
   "migrations": ["dist/migrations/*.js"]
 }
