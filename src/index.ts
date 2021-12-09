@@ -23,7 +23,7 @@ const main = async () => {
   const redis = new Redis(process.env.REDIS_URL);
 
   // NGINX proxy
-  app.set("proxy", 1);
+  app.set("trust proxy", 1);
   // NOTE: before apollo so that it can be used by it
   app.use(
     session({
@@ -71,7 +71,7 @@ const main = async () => {
       url: process.env.DATABASE_URL,
       // logging: true,
       //NOTE: sync just for dev, in prod -> migrations
-      synchronize: !__prod__,
+      // synchronize: !__prod__,
       entities: [Campground, User, Upvote],
       migrations: [path.join(__dirname, "./migrations/*")],
     });
