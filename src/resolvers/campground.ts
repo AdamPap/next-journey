@@ -224,6 +224,7 @@ export class CampgroundResolver {
 
       return camp;
     } catch (err) {
+      // TODO: map error
       console.log(err);
       throw new Error("Image upload failed");
     }
@@ -235,12 +236,27 @@ export class CampgroundResolver {
     @Arg("id", () => Int) id: number,
     @Arg("name") name: string,
     @Arg("location") location: string,
+    @Arg("image") image: string,
     @Ctx() { req }: MyContext
   ): Promise<Campground | undefined> {
+    cloudinary.v2.config({
+      cloud_name: process.env.CLOUDINARY_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+
+    const imgResult = await cloudinary.v2.uploader.upload(image, {
+      allowed_formats: ["jpg", "png"],
+      public_id: "",
+      folder: "next-journey",
+    });
+
+    // TODO: remove old image from cloudinary
+
     const result = await getConnection()
       .createQueryBuilder()
       .update(Campground)
-      .set({ name, location })
+      .set({ name, location, image: imgResult.secure_url })
       .where('id = :id and "creatorId" = :creatorId', {
         id,
         creatorId: req.session.userId,
