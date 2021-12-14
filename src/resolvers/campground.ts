@@ -218,7 +218,7 @@ export class CampgroundResolver {
       const camp = Campground.create({
         name,
         location,
-        image: result.public_id,
+        image: result.secure_url,
         creatorId: req.session.userId,
       }).save();
 

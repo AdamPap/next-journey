@@ -36,6 +36,15 @@ class UserResponse {
   user?: User;
 }
 
+@ObjectType()
+class ForgotPasswordResponse {
+  @Field(() => [FieldError], { nullable: true })
+  errors?: FieldError[];
+
+  @Field(() => Boolean, { nullable: true })
+  success?: boolean;
+}
+
 // NOTE: instead of passing Args separately
 @InputType()
 class RegisterInput {
@@ -135,16 +144,27 @@ export class UserResolver {
     return { user };
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => ForgotPasswordResponse)
   async forgotPassword(
     @Arg("email") email: string,
     @Ctx() { redis }: MyContext
   ) {
+    if (email.length < 1) {
+      return {
+        errors: [
+          {
+            field: "email",
+            message: "Email cannot be empty",
+          },
+        ],
+      };
+    }
+
     const user = await User.findOne({ email: email });
     // OR const user = await User.findOne({where: {  email }});
     if (!user) {
       // not informing user for security
-      return true;
+      return { success: true };
     }
 
     const token = v4();
@@ -162,6 +182,8 @@ export class UserResolver {
       // TODO: switch domain
       `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`
     );
+
+    return { success: true };
   }
 
   @Query(() => User, { nullable: true })
