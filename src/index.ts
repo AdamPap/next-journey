@@ -71,7 +71,7 @@ const main = async () => {
       url: process.env.DATABASE_URL,
       // logging: true,
       //NOTE: sync just for dev, in prod -> migrations
-      // synchronize: !__prod__,
+      synchronize: !__prod__,
       entities: [Campground, User, Upvote],
       migrations: [path.join(__dirname, "./migrations/*")],
     });

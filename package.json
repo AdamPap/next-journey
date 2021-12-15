@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.ts",
   "dependencies": {
+    "@mapbox/mapbox-sdk": "^0.13.2",
     "@types/dotenv-safe": "^8.1.2",
     "apollo-server-express": "^3.4.0",
     "argon2": "^0.28.2",
@@ -26,6 +27,7 @@
     "@types/express": "^4.17.13",
     "@types/express-session": "^1.17.4",
     "@types/ioredis": "^4.27.8",
+    "@types/mapbox__mapbox-sdk": "^0.13.2",
     "@types/node": "^16.11.1",
     "@types/nodemailer": "^6.4.4",
     "@types/redis": "^2.8.32",

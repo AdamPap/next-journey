@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType, Float } from "type-graphql";
 import {
   Entity,
   Column,
@@ -11,6 +11,9 @@ import {
 } from "typeorm";
 import { Upvote } from "./Upvote";
 import { User } from "./User";
+
+type GeoType = "Point";
+type GeoCoordinates = [number, number];
 
 @ObjectType()
 @Entity()
@@ -26,6 +29,14 @@ export class Campground extends BaseEntity {
   @Field(() => String)
   @Column()
   location!: string;
+
+  @Field(() => Float)
+  @Column({ type: "real" })
+  longitude!: number;
+
+  @Field(() => Float)
+  @Column({ type: "real" })
+  latitude!: number;
 
   @Field(() => String)
   @Column()

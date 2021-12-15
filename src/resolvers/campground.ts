@@ -17,7 +17,9 @@ import { Upvote } from "../entities/Upvote";
 import { isAuth } from "../middleware/isAuth";
 import { MyContext } from "../types";
 import cloudinary from "cloudinary";
+import mbxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 
+const geocoder = mbxGeocoding({ accessToken: process.env.MAPBOX_TOKEN });
 // @InputType()
 // class CampgroundInput {
 //   @Field()
@@ -202,6 +204,15 @@ export class CampgroundResolver {
     @Arg("image") image: string,
     @Ctx() { req }: MyContext
   ): Promise<Campground> {
+    const geoRes = await geocoder
+      .forwardGeocode({
+        query: location,
+        limit: 1,
+      })
+      .send();
+
+    const coords = geoRes.body.features[0].geometry.coordinates;
+
     cloudinary.v2.config({
       cloud_name: process.env.CLOUDINARY_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
@@ -218,13 +229,15 @@ export class CampgroundResolver {
       const camp = Campground.create({
         name,
         location,
+        longitude: coords[0],
+        latitude: coords[1],
         image: result.secure_url,
         creatorId: req.session.userId,
       }).save();
 
       return camp;
     } catch (err) {
-      // TODO: map error
+      // TODO: map to error
       console.log(err);
       throw new Error("Image upload failed");
     }
