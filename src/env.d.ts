@@ -9,5 +9,6 @@ declare namespace NodeJS {
     CLOUDINARY_API_SECRET: string;
     CLOUDINARY_NAME: string;
     MAPBOX_TOKEN: string;
+    MAIL_PASS: string;
   }
 }

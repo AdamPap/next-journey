@@ -180,7 +180,7 @@ export class UserResolver {
       email,
       "Password Change Request",
       // TODO: switch domain
-      `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`
+      `<a href="${process.env.CORS_ORIGIN}/change-password/${token}">Reset Password</a>`
     );
 
     return { success: true };
