@@ -186,6 +186,21 @@ export class UserResolver {
     return { success: true };
   }
 
+  @Query(() => [User], { nullable: true })
+  async users(@Ctx() { req }: MyContext) {
+    if (!req.session.userId) {
+      return null;
+    }
+    const user = await User.findOne(req.session.userId);
+
+    if (!user?.isAdmin) {
+      return null;
+    }
+
+    const pendingUsers = User.find({});
+    return pendingUsers;
+  }
+
   @Query(() => User, { nullable: true })
   async currentUser(@Ctx() { req }: MyContext) {
     if (!req.session.userId) {
