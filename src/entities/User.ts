@@ -30,6 +30,14 @@ export class User extends BaseEntity {
   @Column({ unique: true })
   username!: string;
 
+  @Field(() => Boolean)
+  @Column({ default: false })
+  isAdmin!: boolean;
+
+  @Field(() => Boolean)
+  @Column({ default: false })
+  isAccepted!: boolean;
+
   @Column()
   password!: string;
 
