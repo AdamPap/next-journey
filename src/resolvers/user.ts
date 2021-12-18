@@ -186,8 +186,46 @@ export class UserResolver {
     return { success: true };
   }
 
+  @Mutation(() => Boolean)
+  async acceptUser(
+    @Arg("username") username: string,
+    @Ctx() { req }: MyContext
+  ): Promise<boolean> {
+    if (!req.session.userId) {
+      return false;
+    }
+
+    const user = await User.findOne(req.session.userId);
+
+    console.log("username: ", username);
+
+    if (!user?.isAdmin) {
+      return false;
+    }
+
+    const userToAccept = await User.findOne({ username: username });
+    console.log("---------");
+    console.log(userToAccept);
+
+    if (!userToAccept) {
+      return false;
+    }
+
+    console.log("=======");
+    console.log(userToAccept);
+
+    if (userToAccept.isAccepted) {
+      return false;
+    }
+
+    userToAccept.isAccepted = true;
+    userToAccept.save();
+    console.log("returning");
+    return true;
+  }
+
   @Query(() => [User], { nullable: true })
-  async users(@Ctx() { req }: MyContext) {
+  async users(@Ctx() { req }: MyContext): Promise<User[] | null> {
     if (!req.session.userId) {
       return null;
     }
@@ -197,7 +235,8 @@ export class UserResolver {
       return null;
     }
 
-    const pendingUsers = User.find({});
+    const pendingUsers = await User.find({});
+    console.log(pendingUsers);
     return pendingUsers;
   }
 
